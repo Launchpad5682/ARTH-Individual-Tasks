@@ -1,0 +1,5 @@
+hadoop_path: "/tmp/hadoop.rpm"
+jdk_path: "/tmp/jdk.rpm"
+data_node_dir: "/dataNode"
+name_node_dir: "/nameNode"
+name_node_ip: "192.168.0.102"

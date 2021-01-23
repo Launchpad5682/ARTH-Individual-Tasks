@@ -1,0 +1,91 @@
+- name: Common Tasks
+  hosts: all
+  vars_files:
+    - vars_file.yml
+
+  tasks:
+    - name: Switch off the firewall
+      firewalld:
+        immediate: yes
+        permanent: yes
+        state: enabled
+      ignore_errors: yes
+
+    - name: Transfer JDK
+      copy:
+        src: "./jdk-8u171-linux-x64.rpm"
+        dest: "{{ jdk_path }}"
+
+    - name: Install the JDK
+      yum:
+        name: "{{ jdk_path }}"
+        state: present
+        disable_gpg_check: yes
+
+    - name: Transfer Hadoop
+      copy:
+        src: "./hadoop-1.2.1-1.x86_64.rpm"
+        dest: "{{ hadoop_path }}"
+
+    # need to install the hadoop forcefully
+    - name: Install the hadoop
+      command: "rpm -i {{ hadoop_path }} --force"
+      ignore_errors: yes
+
+- name: Setting up Name node
+  hosts: namenode
+  vars_files:
+    - vars_file.yml
+  tasks:
+    - name: Make a namenode directory
+      file:
+        state: directory
+        path: "{{ name_node_dir }}"
+
+    - name: Copy the core-site.xml
+      template:
+        src: "./name_node_conf/core-site.xml"
+        dest: "/etc/hadoop/core-site.xml"
+
+    - name: Copy the hdfs-site.xml
+      template:
+        src: "./name_node_conf/hdfs-site.xml"
+        dest: "/etc/hadoop/hdfs-site.xml"
+
+    - name: Format the namenode
+      command: "hadoop namenode -format -force"
+      ignore_errors: yes
+
+    - name: Starting the Name Node
+      shell: "hadoop-daemon.sh start namenode"
+      register: x
+
+    - debug:
+        msg: "{{ x }}"
+
+- name: Setting up Data node
+  hosts: datanode
+  vars_files:
+    - vars_file.yml
+  tasks:
+    - name: Make a datanode directory
+      file:
+        state: directory
+        path: "{{ data_node_dir }}"
+
+    - name: Copy the core-site.xml
+      template:
+        src: "./data_node_conf/core-site.xml"
+        dest: "/etc/hadoop/core-site.xml"
+
+    - name: Copy the hdfs-site.xml
+      template:
+        src: "./data_node_conf/hdfs-site.xml"
+        dest: "/etc/hadoop/hdfs-site.xml"
+
+    - name: Starting the Name Node
+      shell: "hadoop-daemon.sh start datanode"
+      register: y
+
+    - debug:
+        msg: "{{ y }}"
