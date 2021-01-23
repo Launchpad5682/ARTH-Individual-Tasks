@@ -1,0 +1,69 @@
+- name: "Setting Up WebServers"
+  hosts: webservers
+  vars:
+    dst: "/var/www/html/index.php"
+  tasks:
+    - name: "Enabling firewall for port 80"
+      firewalld:
+        port: 80/tcp
+        permanent: yes
+        immediate: yes
+        state: enabled
+
+    - name: "Installing HTTPD"
+      package:
+        name: httpd
+        state: present
+
+    - name: "Installing PHP"
+      package:
+        name: php
+        state: present
+
+    - name: "Copying the files"
+      copy:
+        content: >
+          "<pre>
+          <?php
+          print `/usr/sbin/ifconfig`;
+          ?>
+          </pre>"
+        dest: "{{ dst }}"
+
+    - name: "Starting HTTPD"
+      service:
+        name: httpd
+        state: started
+
+- name: "Setting up Load Balancer"
+  hosts: load_balancer
+  vars:
+    path_ha: "/etc/haproxy/haproxy.cfg"
+  vars_files:
+    - ip.yml
+
+  tasks:
+    - name: "Enabling Firewall at 5000"
+      firewalld:
+        port: "5000/tcp"
+        permanent: yes
+        immediate: yes
+        state: enabled
+
+    - name: "Installing the HAProxy"
+      package:
+        name: haproxy
+        state: present
+
+    - name: "Adding webserver IP addresses in config file"
+      blockinfile:
+        path: "{{ path_ha }}"
+        insertafter: "balance     roundrobin"
+        block: "{% for i in ip_web %}
+          server  app{{ loop.index }} {{ i }}:80 check \n
+          {% endfor %}"
+
+    - name: "Start the HAProxy"
+      service:
+        name: haproxy
+        state: started
