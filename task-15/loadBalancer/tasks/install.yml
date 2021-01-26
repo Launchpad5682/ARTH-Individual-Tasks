@@ -1,0 +1,11 @@
+- name: "Enabling Firewall at 5000"
+  firewalld:
+    port: "5000/tcp"
+    permanent: yes
+    immediate: yes
+    state: enabled
+
+- name: "Installing the HAProxy"
+  package:
+    name: haproxy
+    state: present

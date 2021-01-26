@@ -1,0 +1,7 @@
+- name: "Adding webserver IP addresses in config file"
+  blockinfile:
+    path: "{{ path_ha }}"
+    insertafter: "balance     roundrobin"
+    block: "{% for i in groups['webservers'] %}
+      server  app{{ loop.index }} {{ i }}:80 check \n
+      {% endfor %}"

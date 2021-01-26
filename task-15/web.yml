@@ -1,0 +1,9 @@
+- name: "Using Role WebServer"
+  hosts: webservers
+  roles: 
+    - role: webServer
+
+- name: "Using Role LoadBalancer"
+  hosts: load_balancer
+  roles:
+    -  role: loadBalancer

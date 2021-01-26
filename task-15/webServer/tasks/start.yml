@@ -1,0 +1,13 @@
+- name: "Enabling firewall for port 80"
+  firewalld:
+    port: 80/tcp
+    permanent: yes
+    immediate: yes
+    state: enabled
+
+- name: "Starting HTTPD"
+  service:
+    name: httpd
+    state: started
+
+

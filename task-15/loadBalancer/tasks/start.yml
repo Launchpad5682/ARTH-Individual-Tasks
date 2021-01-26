@@ -1,0 +1,4 @@
+- name: "Start the HAProxy"
+  service:
+    name: haproxy
+    state: started

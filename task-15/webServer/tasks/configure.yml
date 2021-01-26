@@ -1,0 +1,5 @@
+- name: "Copying the files"
+  copy:
+    src: index.php
+    dest: "{{ dst }}"
+

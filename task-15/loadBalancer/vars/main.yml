@@ -1,0 +1,3 @@
+---
+# vars file for loadBalancer
+path_ha: "/etc/haproxy/haproxy.cfg"

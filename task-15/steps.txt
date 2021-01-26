@@ -1,0 +1,10 @@
+Steps to perform web server and load 
+balancer in ansible using roles:
+
+1. You should have different roles for every task.
+2. Defaults contains the variables.
+3. files contain the copy.
+4. vars contains the variables.
+
+-> Web server configuration. 
+-> Load Balancer.

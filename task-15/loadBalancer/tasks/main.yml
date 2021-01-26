@@ -1,0 +1,5 @@
+---
+# tasks file for loadBalancer
+- include: install.yml
+- include: configure.yml
+- include: start.yml
