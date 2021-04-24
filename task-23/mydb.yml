@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: mysql
+  name: mysql
+spec:
+  containers:
+  - env:
+    - name: MYSQL_ROOT_PASSWORD
+      value: redhat
+    - name: MYSQL_DATABASE
+      value: testdb
+    - name: MYSQL_USER
+      value: launchpad
+    - name: MYSQL_PASSWORD
+      value: redhat
+    image: mysql:5.7
+    name: mysql
+  restartPolicy: Always

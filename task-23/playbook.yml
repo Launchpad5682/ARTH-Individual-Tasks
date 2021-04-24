@@ -1,0 +1,57 @@
+- name: Installing Wordpress and MySQL Server
+  hosts: kubernetesClient
+  tasks:
+    - name: Copying wordpress YAML file
+      copy:
+        src: wordpress.yml
+        dest: /root/
+
+    - name: Copying service YAML file
+      copy:
+        src: service.yml
+        dest: /root/
+
+    - name: Copying MySQL server db YAML file
+      copy:
+        src: mydb.yml
+        dest: /root/
+
+    - name: Executing Wordpress YAML
+      shell: kubectl apply -f /root/wordpress.yml
+      register: wordpress
+
+    - name: Executing MySQL DB YAML
+      shell: kubectl apply -f /root/mydb.yml
+      register: mysql
+
+    - name: Executing service YAML
+      shell: kubectl apply -f /root/service.yml
+      register: service
+
+    - name: Debugging the wordpress
+      debug:
+        var: wordpress.stdout
+
+    - name: Debugging the mysql
+      debug:
+        var: mysql.stdout
+
+    - name: Debugging the service
+      debug:
+        var: service.stdout
+
+    - name: Checking the service port
+      shell: kubectl get svc | grep wpfront
+      register: serviceport
+
+    - name: Debugging the service port
+      debug: 
+        var: serviceport.stdout
+
+    - name: Checking the mysql pod
+      shell: kubectl get pods -o wide | grep mysql
+      register: mysqlIP
+    
+    - name: Debugging the mysql IP
+      debug: 
+        var: mysqlIP.stdout
