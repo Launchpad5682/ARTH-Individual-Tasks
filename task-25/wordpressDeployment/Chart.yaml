@@ -1,0 +1,7 @@
+apiVersion: v1
+name: Wordpress-MySQL
+version: 1
+description: This is the Helm Chart that creates the Wordpress and MySQL service with dynamic parameters
+maintainers:
+  - name: Saurabh Suthar
+    email: launchpad5682@gmail.com

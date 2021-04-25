@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: {{ .Values.wordpress_name }}
+  name: {{ .Values.wordpress_name }}
+spec:
+  containers:
+  - image: {{ .Values.wordpress_image }}
+    name: {{ .Values.wordpress_name }}
+  restartPolicy: Always

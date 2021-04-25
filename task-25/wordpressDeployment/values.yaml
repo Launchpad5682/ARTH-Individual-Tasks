@@ -1,0 +1,9 @@
+user: launchpad
+password: redhat
+root_password: redhat
+mysql_db: testdb
+wordpress_name: wpfront
+database_name: mysql
+service_name: webservice
+wordpress_image: "wordpress:5.1.1-php7.3-apache"
+mysql_image: "mysql:5.7"
