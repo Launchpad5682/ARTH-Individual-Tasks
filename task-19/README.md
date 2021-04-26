@@ -1,0 +1,1 @@
+run the ec2.py in root user 

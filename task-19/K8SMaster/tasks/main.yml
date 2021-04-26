@@ -1,0 +1,89 @@
+---
+# tasks file for K8SMaster
+- name: "Installing Docker and IP route-tc"
+  package:
+    name:
+      - docker
+      - iproute-tc
+
+- name: "Configuring yum repo for Kubernetes"
+  yum_repository:
+    name: kubernetes
+    description: "YUM repository for Kubernetes"
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+    gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    enabled: yes
+    gpgcheck: yes
+    repo_gpgcheck: yes
+    exclude:
+      - kubelet
+      - kubeadm
+      - kubectl
+
+- name: "Installing kubeadm"
+  yum:
+    name: kubeadm
+    disable_excludes: kubernetes
+
+- name: "Starting docker service"
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: "Starting kubelet service"
+  service:
+    name: kubelet
+    state: started
+    enabled: yes
+
+- name: "Creating daemon.json"
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {
+          "exec-opts": ["native.cgroupdriver=systemd"]
+      }
+  register: output
+  ignore_errors: yes
+
+- name: "Restarting docker on change"
+  service:
+    name: docker
+    state: restarted
+  when: output.changed == true
+
+- name: "Pulling images for K8S cluster"
+  shell: "kubeadm config images pull"
+
+- name: "Enable bridge routing"
+  shell: 'echo "1" > /proc/sys/net/bridge/bridge-nf-call-iptables'
+
+- name: "Starting kubeadm"
+  shell: "kubeadm init --pod-network-cidr=10.240.0.0/16 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem"
+
+- name: "Creating .kube file"
+  file:
+    path: $HOME/.kube
+    state: directory
+
+- name: "Copying file config file"
+  copy:
+    dest: $HOME/.kube/config
+    src: /etc/kubernetes/admin.conf
+    remote_src: yes
+
+- name: "Change kubeconfig file permission"
+  file:
+    path: $HOME/.kube/config
+    owner: "{{ ansible_effective_user_id }}"
+    group: "{{ ansible_effective_group_id }}"
+
+- name: "Applying Flannel"
+  shell: "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml"
+
+- name: "Edit config map "
+
+- name: "Delete Flannel Pods"
+  shell: "kubectl delete pods -l app=flannel -n kube-system"
+

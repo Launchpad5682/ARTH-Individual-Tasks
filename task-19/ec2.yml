@@ -1,0 +1,71 @@
+- hosts: localhost
+  connection: local
+  vars_files: ec2-key.yml
+  tasks:
+  - name: "Setting a new security group"
+    amazon.aws.ec2_group:
+      name: "K8SCluster"
+      description: "Security group for K8S multi-node cluster"
+      region: "ap-south-1"
+      aws_access_key: "{{ access_key_id }}"
+      aws_secret_key: "{{ secret_access_key }}"
+      rules:
+        - proto: all
+          cidr_ip: 0.0.0.0/0
+      rules_egress:
+        - proto: all
+          cidr_ip: 0.0.0.0/0
+
+  - name: "Launching master node on ec2 instance"
+    amazon.aws.ec2:
+      key_name: ec2
+      instance_type: "t2.micro"
+      image: "ami-08e0ca9924195beba"
+      wait: yes
+      count: 1
+      instance_tags:
+        Name: MasterNode
+      assign_public_ip: yes
+      region: "ap-south-1"
+      vpc_subnet_id: "subnet-65e5ec0d"
+      aws_access_key: "{{ access_key_id }}"
+      aws_secret_key: "{{ secret_access_key }}"
+      group: "K8SCluster"
+      state: present
+    register: masterInfo
+
+  - name: "Updating the inventory file"
+    lineinfile:
+      path: "./inventory"
+      insertbefore: "[master]"
+      line: "{{ masterInfo.instances[0].public_ip }}"
+
+  - name: "Launching worker nodes on ec2 instance"
+    amazon.aws.ec2:
+      key_name: ec2
+      instance_type: "t2.micro"
+      image: "ami-08e0ca9924195beba"
+      wait: yes
+      count: 2
+      instance_tags:
+        Name: WorkerNode
+      assign_public_ip: yes
+      region: "ap-south-1"
+      vpc_subnet_id: "subnet-65e5ec0d"
+      aws_access_key: "{{ access_key_id }}"
+      aws_secret_key: "{{ secret_access_key }}"
+      group: "K8SCluster"
+      state: present
+    register: workerInfo
+
+  - name: "Debugging the AWS properties"
+    debug:
+      msg: "{{ item.public_ip }}"
+    loop: "{{ workerInfo['instances'] }}"
+
+  - name: "Updating the inventory file"
+    lineinfile:
+      path: "./inventory"
+      insertafter: "[worker]"
+      line: "{{ item.public_ip }}"
+    loop: "{{ workerInfo['instances'] }}"
