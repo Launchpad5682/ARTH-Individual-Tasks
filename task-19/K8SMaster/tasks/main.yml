@@ -82,8 +82,3 @@
 - name: "Applying Flannel"
   shell: "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml"
 
-- name: "Edit config map "
-
-- name: "Delete Flannel Pods"
-  shell: "kubectl delete pods -l app=flannel -n kube-system"
-
