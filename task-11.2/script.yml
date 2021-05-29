@@ -1,0 +1,66 @@
+- name: Installing HTTPd Web Server
+  hosts: webserver
+  vars:
+    dvd_dir: "/dvd1"
+  tasks:
+    - name: Creating a directory for DVD
+      file:
+        state: directory
+        path: "{{dvd_dir}}"
+
+    - name: Mounting the DVD to a directory
+      mount:
+        src: "/dev/sr0"
+        path: "{{dvd_dir}}"
+        state: mounted
+        fstype: "iso9660"
+
+    - name: Configuring the AppStream
+      yum_repository:
+        name: mydvd1
+        description: "YUM DVD for packages"
+        baseurl: "{{dvd_dir}}/AppStream"
+        gpgcheck: no
+
+    - name: Configuring the BaseOS
+      yum_repository:
+        name: mydvd2
+        description: "YUM DVD for packages"
+        baseurl: "{{dvd_dir}}/BaseOS"
+        gpgcheck: no
+
+    - name: Install HTTPd Server
+      yum:
+        name: "httpd"
+        state: latest
+
+    - name: Enable Firewall
+      ansible.posix.firewalld:
+        port: "80/tcp"
+        state: enabled
+        permanent: yes
+        immediate: yes
+
+    - name: Copying the webpages
+      copy:
+        src: index.html
+        dest: /var/www/html/
+
+    - name: start web service
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Copying the configuration files
+      template:
+        src: welcome.conf
+        dest: /etc/httpd/conf.d/welcome.conf
+      notify: restart web service
+
+  handlers:
+    - name: restart web service
+      service:
+        name: httpd
+        state: restarted
+        enabled: yes
